@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Prediction App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: url('background-image.jpg') center center fixed;
+            background-size: cover;
+            color: black;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 80%;
+        }
+
+        .column {
+            box-sizing: border-box;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            margin: 20px;
+            width: 100%;
+        }
+
+        #loginColumn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 300px; /* Adjusted height */
+            width: 40%; /* Adjusted width */
+        }
+
+        form {
+            width: 100%;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: blueviolet;
+        }
+
+        input,
+        textarea {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus,
+        textarea:focus {
+            border-color: #4caf50;
+        }
+
+        button {
+            background-color: #4caf50;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: auto;
+            display: block;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #resultColumn {
+            display: none;
+            flex-direction: row;
+        }
+
+        #symptomsForm,
+        #resultForm {
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            text-align: left;
+            margin: 20px;
+            width: 50%;
+        }
+
+        #result {
+            font-weight: bold;
+        }
+
+        textarea {
+            resize: none;
+            height: 100px;
+        }
+
+        img {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="column" id="loginColumn">
+            <form>
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required placeholder="Enter username">
+
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required placeholder="Enter password">
+
+                <button type="button" onclick="login()">Login</button>
+            </form>
+        </div>
+
+        <div class="column" id="resultColumn">
+            <form id="symptomsForm">
+                <h2>Welcome!</h2>
+                <p>Enter symptoms to get personalized health recommendations:</p>
+                <label for="symptoms">Symptoms:</label>
+                <textarea id="symptoms" name="symptoms" rows="4" required></textarea>
+                <button type="button" onclick="predictDisease()">Predict Disease</button>
+            </form>
+
+            <form id="resultForm">
+                <h2>Result:</h2>
+                <div id="result"></div>
+            </form>
+        </div>
+    </div>
+
+
+    <script>
+        function validatePassword() {
+            const password = document.getElementById("password").value;
+
+            if (
+                password.length >= 8 &&
+                /[A-Z]/.test(password) &&
+                /\d/.test(password) &&
+                /[!@#$%^&*(),.?":{}|<>]/.test(password)
+            ) {
+                showSymptomsForm();
+            } else {
+                alert("Password must be at least 8 characters and include one capital letter, one numerical digit, and one special character.");
+            }
+        }
+
+        function login() {
+            validatePassword();
+        }
+
+        function showSymptomsForm() {
+            const loginColumn = document.getElementById("loginColumn");
+            const resultColumn = document.getElementById("resultColumn");
+
+            loginColumn.style.display = "none";
+            resultColumn.style.display = "flex"; // Display resultColumn as flex to allow side-by-side forms
+        }
+
+        function showResultForm(disease, recommendations) {
+            const resultElement = document.getElementById("result");
+
+            resultElement.innerHTML = `
+                <p>Predicted Disease: ${disease}</p>
+                <p>Health Recommendations: ${recommendations}</p>
+            `;
+
+            const resultForm = document.getElementById("resultForm");
+            resultForm.style.display = "block";
+        }
+
+        function predictDisease() {
+            const symptomsInput = document.getElementById("symptoms").value;
+            
+            const dataset = [
+    { symptoms: "Fever, Cough", disease: "Flu" },
+    { symptoms: "Headache, Fatigue", disease: "Migraine" },
+    { symptoms: "Chest pain, Shortness of breath", disease: "Heart Attack" },
+    { symptoms: "Abdominal pain, Nausea, Vomiting", disease: "Appendicitis" },
+    { symptoms: "Joint pain, Fever, Rash", disease: "Lupus" },
+    { symptoms: "Difficulty swallowing, Weight loss", disease: "Esophageal Cancer" },
+    { symptoms: "Frequent urination, Thirst", disease: "Diabetes" },
+    { symptoms: "Cough, Wheezing", disease: "Asthma" },
+    { symptoms: "Dizziness, Fainting", disease: "Low Blood Pressure" },
+    { symptoms: "Blurred vision, Eye pain", disease: "Glaucoma" },
+    { symptoms: "Memory loss, Confusion", disease: "Alzheimer's Disease" },
+    { symptoms: "Abdominal bloating, Gas", disease: "Irritable Bowel Syndrome (IBS)" },
+    { symptoms: "Back pain, Numbness", disease: "Herniated Disc" },
+    { symptoms: "Swollen joints, Stiffness", disease: "Rheumatoid Arthritis" },
+    { symptoms: "Excessive sweating, Rapid heartbeat", disease: "Hyperthyroidism" },
+    { symptoms: "Chest pain, Difficulty breathing", disease: "Pneumonia" },
+    { symptoms: "Nasal congestion, Sneezing", disease: "Common Cold" },
+    { symptoms: "Muscle weakness, Tremors", disease: "Parkinson's Disease" },
+    { symptoms: "Abdominal pain, Diarrhea", disease: "Food Poisoning" },
+    { symptoms: "Shortness of breath, Swelling", disease: "Congestive Heart Failure" },
+    { symptoms: "Chest pain, Nausea", disease: "Gastritis" },
+    { symptoms: "Blood in urine, Painful urination", disease: "Urinary Tract Infection (UTI)" },
+    { symptoms: "Seizures, Loss of consciousness", disease: "Epilepsy" },
+    { symptoms: "Throat pain, Difficulty swallowing", disease: "Strep Throat" },
+    { symptoms: "Vision changes, Eye redness", disease: "Conjunctivitis (Pink Eye)" },
+    { symptoms: "Abdominal pain, Constipation", disease: "Colon Cancer" },
+    { symptoms: "Chest pain, Irregular heartbeat", disease: "Arrhythmia" },
+    { symptoms: "Joint pain, Swelling", disease: "Gout" },
+    { symptoms: "Shortness of breath, Wheezing", disease: "Chronic Obstructive Pulmonary Disease (COPD)" },
+    { symptoms: "Fatigue, Pale skin", disease: "Anemia" },
+    { symptoms: "Headache, Sensitivity to light", disease: "Migraine" },
+    { symptoms: "Back pain, Fever", disease: "Kidney Infection" },
+    { symptoms: "Nausea, Vomiting", disease: "Gastroenteritis" },
+    { symptoms: "Cough, Shortness of breath", disease: "Chronic Bronchitis" },
+    { symptoms: "Abdominal pain, Bloating", disease: "Irritable Bowel Syndrome (IBS)" },
+    { symptoms: "Joint pain, Morning stiffness", disease: "Osteoarthritis" },
+    { symptoms: "Chest pain, Dizziness", disease: "Angina" },
+    { symptoms: "Fever, Sore throat", disease: "Influenza" },
+    { symptoms: "Muscle cramps, Weakness", disease: "Dehydration" },
+    { symptoms: "Skin rash, Itching", disease: "Eczema" },
+    { symptoms: "Shortness of breath, Rapid heartbeat", disease: "Panic Attack" },
+    { symptoms: "Chest pain, Nausea", disease: "Acid Reflux" },
+    { symptoms: "Abdominal pain, Vomiting blood", disease: "Peptic Ulcer" },
+    { symptoms: "Dizziness, Ringing in the ears", disease: "Meniere's Disease" },
+];
+
+
+const closestMatch = findClosestMatch(symptomsInput, dataset);
+const recommendations = getHealthRecommendations(closestMatch.disease);
+showResultForm(closestMatch.disease, recommendations);
+
+        }
+
+function getHealthRecommendations(disease) {
+    switch (disease) {
+        case "Flu":
+            return "Rest, stay hydrated, and take over-the-counter flu medications.";
+        case "Migraine":
+            return "Find a quiet and dark space to rest, and consider taking a pain reliever.";
+        case "Heart Attack":
+            return "Call emergency services immediately; take aspirin if available and sit quietly.";
+        case "Appendicitis":
+            return "Seek immediate medical attention; do not eat, drink, or use pain medications.";
+        case "Lupus":
+            return "Manage symptoms with medication, rest, and avoid sunlight exposure.";
+        case "Esophageal Cancer":
+            return "Undergo cancer treatment, such as surgery, chemotherapy, or radiation therapy.";
+        case "Diabetes":
+            return "Maintain a healthy diet, exercise regularly, and monitor blood sugar levels.";
+        case "Asthma":
+            return "Use inhalers as prescribed, identify triggers, and have an asthma action plan.";
+        case "Low Blood Pressure":
+            return "Stay hydrated, increase salt intake, and stand up slowly to avoid dizziness.";
+        case "Glaucoma":
+            return "Use prescribed eye drops, attend regular eye checkups, and manage overall health.";
+        case "Alzheimer's Disease":
+            return "Create a structured routine, use memory aids, and seek support from caregivers.";
+        case "Irritable Bowel Syndrome (IBS)":
+            return "Manage stress, maintain a high-fiber diet, and identify trigger foods.";
+        case "Herniated Disc":
+            return "Practice good posture, use lumbar support, and engage in gentle exercises.";
+        case "Rheumatoid Arthritis":
+            return "Take prescribed medications, engage in low-impact exercises, and manage stress.";
+        case "Hyperthyroidism":
+            return "Receive medical treatment, such as antithyroid drugs or radioactive iodine.";
+        case "Pneumonia":
+            return "Take prescribed antibiotics, get plenty of rest, and stay hydrated.";
+        case "Common Cold":
+            return "Rest, stay hydrated, and use over-the-counter cold medications.";
+        case "Parkinson's Disease":
+            return "Take prescribed medications, engage in regular exercise, and maintain a healthy diet.";
+        case "Food Poisoning":
+            return "Stay hydrated, rest, and avoid solid foods until symptoms improve.";
+        case "Congestive Heart Failure":
+            return "Follow a low-sodium diet, take prescribed medications, and monitor fluid intake.";
+        case "Gastritis":
+            return "Avoid spicy and acidic foods, take antacids, and eat smaller, more frequent meals.";
+        case "Urinary Tract Infection (UTI)":
+            return "Take prescribed antibiotics, drink plenty of water, and avoid irritants.";
+        case "Epilepsy":
+            return "Take antiepileptic drugs as prescribed and follow your doctor's recommendations.";
+        case "Strep Throat":
+            return "Take prescribed antibiotics, rest, and stay hydrated.";
+        case "Conjunctivitis (Pink Eye)":
+            return "Use prescribed eye drops, practice good hygiene, and avoid rubbing your eyes.";
+        case "Colon Cancer":
+            return "Undergo cancer treatment, such as surgery, chemotherapy, or radiation therapy.";
+        case "Arrhythmia":
+            return "Manage underlying heart conditions, take prescribed medications, and monitor heart rate.";
+        case "Gout":
+            return "Maintain a low-purine diet, stay hydrated, and take prescribed medications.";
+        case "Chronic Obstructive Pulmonary Disease (COPD)":
+            return "Quit smoking, take prescribed medications, and participate in pulmonary rehabilitation.";
+        case "Anemia":
+            return "Increase iron intake through diet or supplements and eat a balanced diet.";
+        case "Kidney Infection":
+            return "Take prescribed antibiotics, stay hydrated, and get plenty of rest.";
+        case "Gastroenteritis":
+            return "Stay hydrated, rest, and avoid solid foods until symptoms improve.";
+        case "Chronic Bronchitis":
+            return "Quit smoking, take prescribed medications, and engage in pulmonary rehabilitation.";
+        case "Irritable Bowel Syndrome (IBS)":
+            return "Manage stress, maintain a high-fiber diet, and identify trigger foods.";
+        case "Osteoarthritis":
+            return "Engage in low-impact exercises, use joint protection techniques, and take pain medications.";
+        case "Angina":
+            return "Take prescribed medications, manage risk factors, and adopt a heart-healthy lifestyle.";
+        case "Influenza":
+            return "Rest, stay hydrated, and take antiviral medications if prescribed by a doctor.";
+        case "Dehydration":
+            return "Drink fluids, particularly water, and consume electrolyte-rich beverages.";
+        case "Eczema":
+            return "Use moisturizers, avoid irritants, and follow prescribed topical or oral medications.";
+        case "Panic Attack":
+            return "Practice deep breathing, engage in calming activities, and seek professional help if needed.";
+        case "Acid Reflux":
+            return "Avoid trigger foods, eat smaller meals, and take acid-reducing medications.";
+        case "Peptic Ulcer":
+            return "Take prescribed antibiotics to treat H. pylori infection, and use acid-reducing medications.";
+        case "Meniere's Disease":
+            return "Manage symptoms with medications, follow a low-sodium diet, and avoid triggers.";
+            
+        default:
+            return "No specific recommendations available.";
+    }
+}
+
+
+
+function findClosestMatch(symptomsInput, dataset) {
+            const symptomsArray = symptomsInput.toLowerCase().split(',').map(s => s.trim());
+
+            const matches = dataset.map(entry => ({
+                entry,
+                score: calculateSimilarity(symptomsArray, entry.symptoms.toLowerCase().split(',').map(s => s.trim()))
+            }));
+
+            matches.sort((a, b) => b.score - a.score);
+
+            return matches[0].entry;
+        }
+
+        function calculateSimilarity(arr1, arr2) {
+            const intersection = arr1.filter(value => arr2.includes(value));
+            const union = [...new Set([...arr1, ...arr2])];
+            return intersection.length / union.length;
+        }
+    </script>
+</body>
+</html>
